@@ -7,5 +7,3 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/myrealm
-
-# Ajuste os valores acima conforme sua configuração do Keycloak 
