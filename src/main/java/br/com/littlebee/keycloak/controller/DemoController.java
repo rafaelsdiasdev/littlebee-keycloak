@@ -1,4 +1,4 @@
-package br.com.lettlebee.keycloak.controller;
+package br.com.littlebee.keycloak.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
