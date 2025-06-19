@@ -88,4 +88,4 @@ mvn test
 
 ## Integração Contínua
 
-O projeto possui workflow no GitHub Actions que faz build e executa os testes a cada push.
+O projeto possui workflow no GitHub Actions que faz build e executa os testes a cada push. (Em desenvolvimento)
