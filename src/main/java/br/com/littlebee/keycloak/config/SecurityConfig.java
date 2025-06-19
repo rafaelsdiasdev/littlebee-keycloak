@@ -1,4 +1,4 @@
-package br.com.lettlebee.keycloak.config;
+package br.com.littlebee.keycloak.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
