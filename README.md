@@ -2,10 +2,11 @@
 
 Este projeto demonstra a integração de uma aplicação Spring Boot 3 com o Keycloak, utilizando Docker Compose para orquestrar os serviços.
 
-A aplicação expõe três endpoints:
+A aplicação expõe os seguintes endpoints:
 - `/public`: Acesso público, não requer autenticação.
 - `/user`: Requer autenticação e a role `USER`.
 - `/admin`: Requer autenticação e a role `ADMIN`.
+- `/actuator/health`: Endpoint de health check, acesso público.
 
 ## Arquitetura
 
@@ -24,7 +25,7 @@ O ambiente é configurado utilizando Docker Compose e consiste em três serviço
 
 1.  **Clone o repositório:**
     ```sh
-    git clone <url-do-repositorio>
+    git clone https://github.com/rafaelsdiasdev/littlebee-keycloak
     cd keycloak-demo
     ```
 
@@ -66,19 +67,25 @@ Agora, use o token obtido para fazer chamadas aos endpoints.
 - **Endpoint público:**
   ```sh
   curl http://localhost:8082/public
-  # Resposta esperada: Hello from public endpoint!
+  # Resposta esperada: {"message":"Hello from public endpoint!"}
+  ```
+
+- **Endpoint de Health Check:**
+  ```sh
+  curl http://localhost:8082/actuator/health
+  # Resposta esperada: {"status":"UP"}
   ```
 
 - **Endpoint de usuário (requer role USER):**
   ```sh
   curl -H "Authorization: Bearer $TOKEN" http://localhost:8082/user
-  # Resposta esperada: Hello from user endpoint, <CLIENT_ID>!
+  # Resposta esperada: {"message":"Hello from user endpoint, <CLIENT_ID>!"}
   ```
 
 - **Endpoint de admin (requer role ADMIN):**
   ```sh
   curl -H "Authorization: Bearer $TOKEN" http://localhost:8082/admin
-  # Resposta esperada: Hello from admin endpoint, <CLIENT_ID>!
+  # Resposta esperada: {"message":"Hello from admin endpoint, <CLIENT_ID>!"}
   ```
 
 ## Parando a Aplicação
