@@ -1,12 +1,37 @@
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:24.0.2
-    command: start-dev --import-realm
+    image: quay.io/keycloak/keycloak:24.0.4
+    container_name: keycloak
+    command:
+      - start-dev
+      - --import-realm
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB: dev-mem
-    ports:
-      - "8080:8080"
+      KC_DB: dev-file
+      KC_HOSTNAME: keycloak
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_LOG_LEVEL: info
     volumes:
       - ./realm-export.json:/opt/keycloak/data/import/realm-export.json
+    ports:
+      - "8080:8080"
+    networks:
+      - littlebee-network
+
+  littlebee-app:
+    build: .
+    container_name: littlebee-app
+    ports:
+      - "8082:8082"
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+    depends_on:
+      - keycloak
+    networks:
+      - littlebee-network
+
+networks:
+  littlebee-network:
+    driver: bridge
