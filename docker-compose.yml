@@ -20,6 +20,19 @@ services:
     networks:
       - littlebee-network
 
+  keycloak-configurator:
+    build:
+      context: .
+      dockerfile: keycloak-configurator.Dockerfile
+    container_name: keycloak-configurator
+    depends_on:
+      - keycloak
+    volumes:
+      - ./configure-keycloak.sh:/configure-keycloak.sh
+    command: sh /configure-keycloak.sh
+    networks:
+      - littlebee-network
+
   littlebee-app:
     build: .
     container_name: littlebee-app
@@ -29,6 +42,7 @@ services:
       KEYCLOAK_URL: http://keycloak:8080
     depends_on:
       - keycloak
+      - keycloak-configurator
     networks:
       - littlebee-network
 

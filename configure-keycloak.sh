@@ -2,7 +2,7 @@
 
 # Espera o Keycloak iniciar completamente, checando a porta TCP
 echo "Waiting for Keycloak to start..."
-while ! nc -z localhost 8080; do
+while ! nc -z keycloak 8080; do
     printf '.'
     sleep 2
 done
@@ -11,7 +11,7 @@ echo "Keycloak is up!"
 sleep 10 # Adiciona uma espera extra para garantir que o Keycloak esteja pronto
 
 # Configurações
-KEYCLOAK_URL="http://localhost:8080"
+KEYCLOAK_URL="http://keycloak:8080"
 REALM="littlebee"
 CLIENT_ID="littlebee-client"
 ADMIN_USER="admin"

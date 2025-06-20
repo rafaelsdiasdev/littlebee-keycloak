@@ -1,65 +1,92 @@
-# Keycloak Demo - Spring Boot Resource Server
+# Keycloak com Spring Boot - Exemplo Completo
 
-Este projeto demonstra a integração entre uma aplicação Spring Boot (Resource Server) e o Keycloak, usando autenticação JWT e autorização baseada em roles.
+Este projeto demonstra a integração de uma aplicação Spring Boot 3 com o Keycloak, utilizando Docker Compose para orquestrar os serviços.
+
+A aplicação expõe três endpoints:
+- `/public`: Acesso público, não requer autenticação.
+- `/user`: Requer autenticação e a role `USER`.
+- `/admin`: Requer autenticação e a role `ADMIN`.
 
 ## Arquitetura
-- **Keycloak**: Gerencia usuários, clientes e roles. Emite tokens JWT.
-- **Spring Boot**: API protegida, valida tokens JWT emitidos pelo Keycloak.
-- **Docker Compose**: Orquestra os containers para ambiente local.
-- **Script configure-keycloak.sh**: Após a importação do realm, atribui automaticamente as roles `USER` e `ADMIN` ao service account do client via API REST do Keycloak.
 
-## Como rodar
+O ambiente é configurado utilizando Docker Compose e consiste em três serviços principais:
 
-### 1. Build da aplicação
-```sh
-mvn clean package
-```
+1.  **`keycloak`**: A instância do Keycloak, que é responsável pela gestão de identidade e acesso. O serviço importa automaticamente o realm `littlebee` a partir do arquivo `realm-export.json`.
+2.  **`keycloak-configurator`**: Um serviço utilitário que é executado após o Keycloak iniciar. Ele executa o script `configure-keycloak.sh` para atribuir as roles `ADMIN` e `USER` ao *Service Account* do cliente `littlebee-client`. Isso é necessário porque a importação de realm não atribui roles a service accounts automaticamente.
+3.  **`littlebee-app`**: A aplicação Spring Boot que contém os endpoints protegidos.
 
-### 2. Subir o ambiente
-```sh
-docker compose up --build -d
-```
+## Pré-requisitos
 
-- Keycloak estará em: [http://keycloak:8080/](http://keycloak:8080/)
-- API estará em: [http://localhost:8082/](http://localhost:8082/)
+- Docker
+- Docker Compose
 
-> **Nota:** O script `configure-keycloak.sh` será executado automaticamente (via Docker ou manualmente, conforme seu setup) para garantir que o service account do client tenha as roles corretas.
+## Como Executar
 
-### 3. Gerar um token JWT
+1.  **Clone o repositório:**
+    ```sh
+    git clone <url-do-repositorio>
+    cd keycloak-demo
+    ```
 
-Faça uma requisição para o endpoint de token do Keycloak:
+2.  **Construa o projeto Spring Boot:**
+    ```sh
+    ./mvnw clean package
+    ```
 
-```sh
-curl -X POST \
-  http://keycloak:8080/realms/littlebee/protocol/openid-connect/token \
+3.  **Inicie os serviços com Docker Compose:**
+    ```sh
+    docker compose up --build
+    ```
+    Os logs de todos os serviços serão exibidos no terminal. O serviço `keycloak-configurator` será executado e, após a conclusão, sairá com código 0.
+
+## Como Testar a Aplicação
+
+Após os serviços estarem em execução, você pode testar os endpoints.
+
+### 1. Obter um Token de Acesso
+
+Use o `grant_type=client_credentials` para obter um token de acesso para o cliente `littlebee-client`. Este token conterá as roles `ADMIN` e `USER` que foram atribuídas pelo script de configuração.
+
+Execute o comando abaixo no seu terminal:
+
+```bash
+export TOKEN=$(curl -s -X POST "http://localhost:8080/realms/littlebee/protocol/openid-connect/token" \
   -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
   -d "client_id=littlebee-client" \
-  -d "client_secret=SEU_CLIENT_SECRET" \
-  -d "grant_type=client_credentials"
+  -d "client_secret=p3aIe2zALF2k3gP1iN5wQ2vX8yZ7jR4t" | jq -r .access_token)
+
+echo "Token: $TOKEN"
 ```
 
-O campo `access_token` da resposta é o JWT.
+### 2. Testar os Endpoints
 
-### 4. Testar os endpoints protegidos
+Agora, use o token obtido para fazer chamadas aos endpoints.
 
-#### Endpoint público
+- **Endpoint público:**
+  ```sh
+  curl http://localhost:8082/public
+  # Resposta esperada: Hello from public endpoint!
+  ```
+
+- **Endpoint de usuário (requer role USER):**
+  ```sh
+  curl -H "Authorization: Bearer $TOKEN" http://localhost:8082/user
+  # Resposta esperada: Hello from user endpoint, <CLIENT_ID>!
+  ```
+
+- **Endpoint de admin (requer role ADMIN):**
+  ```sh
+  curl -H "Authorization: Bearer $TOKEN" http://localhost:8082/admin
+  # Resposta esperada: Hello from admin endpoint, <CLIENT_ID>!
+  ```
+
+## Parando a Aplicação
+
+Para parar e remover os containers e a rede, execute:
+
 ```sh
-curl http://localhost:8082/public
-```
-
-#### Endpoint protegido (USER ou ADMIN)
-```sh
-curl -H "Authorization: Bearer SEU_TOKEN_AQUI" http://localhost:8082/user
-```
-
-#### Endpoint protegido (ADMIN)
-```sh
-curl -H "Authorization: Bearer SEU_TOKEN_AQUI" http://localhost:8082/admin
-```
-
-#### Health check
-```sh
-curl http://localhost:8082/health
+docker compose down
 ```
 
 ## Roles e autorização
